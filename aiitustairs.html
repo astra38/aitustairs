@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AITUStairs - Interactive Prototype</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #0f172a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* Мобильный контейнер */
+    .phone-frame {
+      width: 100%;
+      max-width: 390px;
+      height: 750px;
+      background-color: #f8fafc;
+      border-radius: 44px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      border: 9px solid #334155;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .dynamic-island {
+      width: 110px;
+      height: 25px;
+      background: #000;
+      border-radius: 20px;
+      margin: 8px auto 0;
+      z-index: 10;
+    }
+
+    .status-bar {
+      background-color: #1e293b;
+      color: white;
+      padding: 6px 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .app-header {
+      background-color: #1e293b;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+
+    .screen {
+      display: none;
+      flex: 1;
+      padding: 16px;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 1px solid #e2e8f0;
+    }
+
+    .card-title {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      margin-top: 6px;
+      font-size: 14px;
+      outline: none;
+      background-color: #f8fafc;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+    .badge-red { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
+    .badge-green { background: #f0fdf4; color: #16a34a; border: 1px solid #86efac; }
+    .badge-yellow { background: #fefce8; color: #ca8a04; border: 1px solid #fef08a; }
+
+    .map-preview {
+      background: #e2e8f0;
+      border-radius: 12px;
+      height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      position: relative;
+      border: 1px dashed #94a3b8;
+    }
+
+    .map-zone {
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .chip {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: #0284c7;
+      color: white;
+      border-color: #0284c7;
+    }
+
+    .route-card {
+      border: 2px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .route-card.selected {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background-color: #0284c7;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+    }
+    .btn-green { background-color: #16a34a; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.25); }
+    .btn-secondary { background-color: #e2e8f0; color: #475569; box-shadow: none; margin-top: 6px; }
+    .btn-warning { background-color: #f59e0b; font-size: 12px; padding: 8px; margin-top: 6px; }
+
+    .step-item { display: flex; align-items: flex-start; margin-bottom: 12px; }
+    .step-num { background: #0284c7; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; margin-right: 10px; flex-shrink: 0; }
+
+    .alert-box {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: #991b1b;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .icon-circle {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phone-frame">
+    <div class="dynamic-island"></div>
+    <div class="status-bar">
+      <span>11:58 AM</span>
+      <span>AITU Wi-Fi 📶 100% 🔋</span>
+    </div>
+
+    <div class="app-header">
+      <div>
+        <span class="app-title">AITUStairs</span>
+        <span style="font-size: 10px; background: #334155; padding: 2px 6px; border-radius: 6px; margin-left: 6px;">Campus UX</span>
+      </div>
+      <span style="font-size: 12px; cursor: pointer;" onclick="toggleAlert()">🔔</span>
+    </div>
+
+    <!-- SCREEN 1: Search & Heatmap -->
+    <div id="screen-1" class="screen active">
+      <div>
+        <div style="margin-bottom: 12px;">
+          <h2 style="font-size: 20px; color: #0f172a;">Welcome, Student 👋</h2>
+          <p style="color: #64748b; font-size: 12px;">Bypass traffic & reach class on time.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Select Destination Classroom</div>
+          <select id="classroomSelect" onchange="updateDestination()">
+            <option value="C1.3.274L">C1.3.274L (Discrete Mathematics)</option>
+            <option value="C1.2.229K">C1.2.229K (ICT)</option>
+            <option value="C1.1.235">C1.1.235 (English)</option>
+          </select>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Live Staircase Congestion Map</div>
+          <div class="map-preview">
+            <div class="map-zone" style="background: #fef2f2; color: #dc2626;">C1.1 Stairs: 88% Congested 🔴</div>
+            <div class="map-zone" style="background: #f0fdf4; color: #16a34a;">C1.2 Stairs: 12% Clear 🟢</div>
+            <div class="map-zone" style="background: #fefce8; color: #ca8a04;">C1.3 Stairs: 45% Moderate 🟡</div>
+          </div>
+        </div>
+
+        <div id="quickAlert" class="alert-box">
+          ⚠️ <b>Live System Alert:</b> C1.1 Stairs blockage detected! Recalculating routes...
+        </div>
+      </div>
+
+      <button class="btn" onclick="goToScreen(2)">Find Fast Route →</button>
+    </div>
+
+    <!-- SCREEN 2: Route Comparison -->
+    <div id="screen-2" class="screen">
+      <div>
+        <h3 style="margin-bottom: 10px; font-size: 16px; color: #0f172a;" id="routeTitle">Routes to C1.3.274L</h3>
+
+        <div class="filter-group">
+          <div class="chip active" onclick="setFilter(this, 'fast')">⚡ Fastest</div>
+          <div class="chip" onclick="setFilter(this, 'crowd')">👥 Least Crowded</div>
+          <div class="chip" onclick="setFilter(this, 'slow')">🔴 Direct (Congested)</div>
+        </div>
+
+        <div class="route-card selected" id="routeC12" onclick="selectRoute('C12')">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 700; color: #0f172a;">C1.2 Stairs ✨</span>
+            <span style="font-size: 16px; font-weight: 800; color: #16a34a;">2 min</span>
+          </div>
+          <p style="font-size: 12px; color: #64748b; margin-top: 4px;">Recommended • Clear corridor path</p>
+          <span class="badge badge-green">🟢 Clear & Fast</span>
+        </div>
+
+        <div class="route-card" id="routeC11" onclick="selectRoute('C11')">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 700; color: #0f172a;">C1.1 Stairs</span>
+            <span style="font-size: 16px; font-weight: 800; color: #dc2626;">7 min</span>
+          </div>
+          <p style="font-size: 12px; color: #64748b; margin-top: 4px;">Heavy congestion near Floor 2</p>
+          <span class="badge badge-red">🔴 Heavy Congestion</span>
+        </div>
+      </div>
+
+      <div>
+        <button class="btn btn-green" onclick="goToScreen(3)">Start Navigation</button>
+        <button class="btn btn-secondary" onclick="goToScreen(1)">Back</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: Turn-by-Turn Navigation -->
+    <div id="screen-3" class="screen">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3>Live Navigation</h3>
+          <span id="navTimeBadge" class="badge badge-green">Fast Route (~2 mins)</span>
+        </div>
+
+        <div class="card" id="navSteps">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div class="card" style="background: #fffbebfb; border-color: #fcd34d;">
+          <div class="card-title" style="color: #b45309;">Crowd Reporting (HCI)</div>
+          <p style="font-size: 11px; color: #78350f;">Staircase condition changed?</p>
+          <button class="btn btn-warning" onclick="reportIssue()">⚠️ Report Unexpected Crowd</button>
+        </div>
+      </div>
+
+      <button class="btn btn-green" onclick="goToScreen(4)">I Have Arrived 🎉</button>
+    </div>
+
+    <!-- SCREEN 4: Completion & UX Survey -->
+    <div id="screen-4" class="screen">
+      <div style="text-align: center; margin-top: 20px;">
+        <div id="statusIcon" class="icon-circle">✓</div>
+        <h2 id="statusTitle" style="font-size: 20px;">Arrived On Time! 🎉</h2>
+        <p id="statusDesc" style="color: #64748b; font-size: 13px; margin-top: 4px;">AITUStairs saved you from getting stuck.</p>
+
+        <div class="card" style="margin-top: 20px; text-align: left;">
+          <div class="card-title">Trip Summary</div>
+          <p style="font-size: 13px; margin-bottom: 4px;"><b>Destination:</b> <span id="summaryDest">C1.3.274L</span></p>
+          <p style="font-size: 13px; margin-bottom: 4px;"><b>Status:</b> <span id="summaryTimeSaved">5 Minutes Saved</span></p>
+          <p style="font-size: 13px;"><b>Route Used:</b> <span id="summaryRouteUsed">C1.2 Stairs</span></p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Rate UX Experience (For UX Arena)</div>
+          <div style="font-size: 20px; cursor: pointer;" onclick="rateApp()">⭐⭐⭐⭐⭐</div>
+          <p id="ratingFeedback" style="font-size: 11px; color: #16a34a; margin-top: 4px; display: none;">Thanks for testing AITUStairs!</p>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" onclick="goToScreen(1)">Start New Navigation</button>
+    </div>
+
+  </div>
+
+  <script>
+    let currentRoute = 'C12'; // 'C12' = Fast (2m), 'C11' = Slow (7m)
+    let selectedClassroom = 'C1.3.274L';
+
+    function goToScreen(num) {
+      if (num === 3) {
+        renderNavigationScreen();
+      } else if (num === 4) {
+        renderSummaryScreen();
+      }
+
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + num).classList.add('active');
+    }
+
+    function updateDestination() {
+      selectedClassroom = document.getElementById('classroomSelect').value;
+      document.getElementById('routeTitle').innerText = 'Routes to ' + selectedClassroom;
+    }
+
+    function selectRoute(type) {
+      currentRoute = type;
+      document.getElementById('routeC12').classList.remove('selected');
+      document.getElementById('routeC11').classList.remove('selected');
+      
+      if (type === 'C12') {
+        document.getElementById('routeC12').classList.add('selected');
+      } else {
+        document.getElementById('routeC11').classList.add('selected');
+      }
+    }
+
+    function setFilter(el, type) {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      if (type === 'fast' || type === 'crowd') {
+        selectRoute('C12');
+      } else if (type === 'slow') {
+        selectRoute('C11');
+      }
+    }
+
+    function renderNavigationScreen() {
+      const navSteps = document.getElementById('navSteps');
+      const timeBadge = document.getElementById('navTimeBadge');
+
+      if (currentRoute === 'C12') {
+        timeBadge.className = 'badge badge-green';
+        timeBadge.innerText = 'Fast Route (~2 mins)';
+        navSteps.innerHTML = `
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div style="font-size: 13px; color: #334155;">Head to <b>C1.2 corridor</b> (Clear path).</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div style="font-size: 13px; color: #334155;">Take <b>C1.2 Staircase</b> straight up to Floor 3.</div>
+          </div>
+          <div class="step-item" style="margin-bottom: 0;">
+            <div class="step-num">3</div>
+            <div style="font-size: 13px; color: #334155;">Turn left, classroom <b>${selectedClassroom}</b> is ahead.</div>
+          </div>
+        `;
+      } else {
+        timeBadge.className = 'badge badge-red';
+        timeBadge.innerText = 'Slow Route (~7 mins)';
+        navSteps.innerHTML = `
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div style="font-size: 13px; color: #334155;">Head to <b>C1.1 main stairs</b>.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div style="font-size: 13px; color: #dc2626;"><b>Heavy Crowd!</b> Wait through congestion bottleneck on Floor 2.</div>
+          </div>
+          <div class="step-item" style="margin-bottom: 0;">
+            <div class="step-num">3</div>
+            <div style="font-size: 13px; color: #334155;">Slowly walk to <b>${selectedClassroom}</b>.</div>
+          </div>
+        `;
+      }
+    }
+
+    function renderSummaryScreen() {
+      const icon = document.getElementById('statusIcon');
+      const title = document.getElementById('statusTitle');
+      const desc = document.getElementById('statusDesc');
+      const timeSaved = document.getElementById('summaryTimeSaved');
+      const routeUsed = document.getElementById('summaryRouteUsed');
+      const summaryDest = document.getElementById('summaryDest');
+
+      summaryDest.innerText = selectedClassroom;
+
+      if (currentRoute === 'C12') {
+        icon.style.background = '#dcfce7';
+        icon.style.color = '#16a34a';
+        icon.innerText = '✓';
+        title.innerText = 'Arrived On Time! 🎉';
+        title.style.color = '#16a34a';
+        desc.innerText = 'AITUStairs routed you around traffic successfully.';
+        timeSaved.innerText = '5 Minutes Saved';
+        timeSaved.style.color = '#16a34a';
+        routeUsed.innerText = 'C1.2 Stairs (Clear Path)';
+      } else {
+        icon.style.background = '#fef2f2';
+        icon.style.color = '#dc2626';
+        icon.innerText = '⚠️️';
+        title.innerText = 'You are LATE for class! 🚨';
+        title.style.color = '#dc2626';
+        desc.innerText = 'You chose the congested C1.1 stairs and got stuck in traffic.';
+        timeSaved.innerText = '0 Minutes (Delayed by 5 min)';
+        timeSaved.style.color = '#dc2626';
+        routeUsed.innerText = 'C1.1 Stairs (88% Congested)';
+      }
+    }
+
+    function toggleAlert() {
+      const box = document.getElementById('quickAlert');
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function reportIssue() {
+      alert('Thank you! Crowd report sent to AITUStairs server.');
+    }
+
+    function rateApp() {
+      document.getElementById('ratingFeedback').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
